@@ -10,7 +10,8 @@ import sklearn
 # import sklearn.metrics as metrics
 # import sklearn.preprocessing
 # import scipy.cluster.hierarchy as sch
-from fcmeans import FCM
+from sklearn.model_selection import train_test_split
+#from fcmeans import FCM
 # import skfuzzy as fuzz
 # import pylab
 # import sklearn.mixture as mixture
@@ -85,16 +86,43 @@ class main(object):
         # plt.ylabel("Score")
         # plt.title("Gráfico de Codo")
         # plt.show()
+    
+    def percentile(self):
+        x = self.df['SalePrice']
+        threshold = x.quantile([0.33,0.67])
+        self.firstRange, self.secondRange = threshold.iloc[0], threshold.iloc[1]
 
-    # def percentile(self):
-    #     h
-    #     x.quantile([0.25,0.5,0.75])
+        return self.firstRange, self.secondRange
+    
+    def groupBy_ResponseVar(self):
+
+        fR, sR = self.percentile()
+        df = self.df.copy()
+
+        df['SaleRange'] = df['SalePrice'].apply(
+            lambda x: 'Low' if x <= fR 
+            else ('Medium' if (x > fR and x <= sR) else 'High'))
+        df_balance = df.copy()
+        df = df.groupby('SaleRange').size()
+
+        df_balance['SaleRange'] = df_balance['SaleRange'].astype('category')
+        print(df_balance)
+        return df
+
+    def trainTest(self):
+        df = self.df
+        y = df.pop("SalePrice") #La variable respuesta
+        X = df #El   resto de los datos
+        random.seed(10000)
+        X_train, X_test,y_train, y_test = train_test_split(X, y,test_size=0.3,train_size=0.7)
+
+    
 
 
-driver = main('train.csv')
+driver = main('../train.csv')
 
 # driver.exploreData()
-print(driver.hopkins()[0])
-driver.fuzzy_cMeans()
-
+#print(driver.hopkins()[0])
+#driver.fuzzy_cMeans()
 # print(driver.clusterNum())
+driver.groupBy_ResponseVar()
