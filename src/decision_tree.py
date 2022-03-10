@@ -7,11 +7,15 @@ import pandas as pd
 import numpy as np
 import sklearn
 from sklearn import tree
+from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from fcmeans import FCM
 import pyclustertend
 from sklearn import cluster 
+# from sklearn import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 from reader import Reader
+
 
 
 
@@ -45,12 +49,12 @@ class main(object):
         X_scale = sklearn.preprocessing.scale(X)
         hop = pyclustertend.hopkins(X,len(X))
         
-        df = pd.DataFrame(df, columns=column_names)
-        return hop, X_scale, X, Y, df
+        # df = pd.DataFrame(df, columns=column_names)
+        return hop, X_scale, X, Y
 
     # fuzzy c-means algorithms 
     def fuzzy_cMeans(self):
-        hop, X_scale, X, Y, df = self.hopkins()
+        hop, X_scale, X, Y = self.hopkins()
         
         fcm = FCM(n_clusters = 5)
         fcm.fit(X)
@@ -65,7 +69,7 @@ class main(object):
         plt.show()
         
     def clusterNum(self):
-        hop, X_scale, X, Y, df = self.hopkins()
+        hop, X_scale, X, Y = self.hopkins()
         numeroClusters = range(1,11)
         wcss = []
         for i in numeroClusters:
@@ -98,21 +102,44 @@ class main(object):
 
         df_balance['SaleRange'] = df_balance['SaleRange'].astype('category')
         print(df_balance)
-        # print("\n df")
+
+        
+        print("\n df")
+        print(df.head)
         return df
         
     def trainTest(self):
         df = self.df
-        hop, X_scale, X, Y, df = self.hopkins()
-  
+        # hop, X_scale, X, Y = self.hopkins()
+        # df = df.copy()
 
-        X_train, X_test,y_train, y_test = train_test_split(X, Y, random_state =101, test_size=0.3,train_size=0.7)
-      
-        return X_train, X_test,y_train, y_test
+        # c_df = df.copy()
+       
+
+        y = df.pop('SalePrice')
+        column_names = ['LotArea','OverallQual', 'TotRmsAbvGrd', 'GarageCars', 'FullBath']
+       
+        X = np.array(df[column_names])
+
+        df = pd.DataFrame(df, columns=column_names)
+
+        
+
+        random.seed(123)
+        
+
+        X_train, X_test,y_train, y_test = train_test_split(X, y,test_size=0.3,train_size=0.7)
+        
+        # df = df[['SalePrice', 'LotArea','OverallQual', 'TotRmsAbvGrd', 'GarageCars', 'FullBath']]
+        # df
+        
+        #X_train, X_test,y_train, y_test = train_test_split(X, Y, random_state=10, test_size=0.3,train_size=0.7)
+        
+        return X_train, X_test,y_train, y_test, df
 
     def treeDepth(self):
-        df = self.df
-        X_train, X_test,y_train, y_test = self.trainTest()
+        
+        X_train, X_test,y_train, y_test, df = self.trainTest()
 
         train_accuracy = []
         test_accuracy = []
@@ -123,6 +150,8 @@ class main(object):
             
             train_accuracy.append(df.score(X_train, y_train))
             test_accuracy.append(df.score(X_test, y_test))
+
+            
 
         frame = pd.DataFrame({'max_depth':range(1, 10), 'train_acc':train_accuracy, 'test_acc':test_accuracy})
         print(frame.head())
@@ -139,8 +168,9 @@ class main(object):
         # EL DEPTH ES DE 3
 
     def decision_tree(self):
-        X_train, X_test,y_train, y_test = self.trainTest()
-        hop, X_scale, X, Y, df = self.hopkins()
+        
+        X_train, X_test,y_train, y_test, df = self.trainTest()
+       
 
         dt = tree.DecisionTreeClassifier(max_depth=3, random_state=10)
         dt.fit(X_train, y_train)
@@ -148,9 +178,40 @@ class main(object):
         feature_names = df.columns
         tree.export_graphviz(dt, out_file='tree.dot', feature_names=feature_names, class_names=True, max_depth=2)
         
+
+        y_pred = dt.predict(X_test)
+        print ("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+        print ("Precision:", metrics.precision_score(y_test,y_pred,average="weighted", zero_division=1) )
+        print ("Recall: ", metrics.recall_score(y_test,y_pred,average="weighted", zero_division=1))
+
+
         # para correrlo tiene que descargar graphviz
         # despues -> dot -Tpng tree.dot -o tree.png
     
+    def regression_tree(self):
+        
+        X_train, X_test,y_train, y_test, df = self.trainTest()
+       
+
+        rt = tree.DecisionTreeRegressor(max_depth=3, random_state=10)
+        rt.fit(X_train, y_train)
+
+        feature_names = df.columns
+        tree.export_graphviz(rt, out_file='regression_tree.dot', feature_names=feature_names, class_names=True, max_depth=2)
+
+    def random_forest(self):
+        
+        X_train, X_test,y_train, y_test, df = self.trainTest()
+       
+        rf = RandomForestClassifier(max_depth=3, random_state=10)
+        rf.fit(X_train, y_train)
+
+        y_pred = rf.predict(X_test)
+        print ("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+        print ("Precision:", metrics.precision_score(y_test,y_pred,average="weighted", zero_division=1) )
+        print ("Recall: ", metrics.recall_score(y_test,y_pred,average="weighted", zero_division=1))
+        
+
 
 driver = main('../train.csv')
 
@@ -158,5 +219,5 @@ driver = main('../train.csv')
 #print(driver.hopkins()[0])
 #driver.fuzzy_cMeans()
 # print(driver.clusterNum())
-driver.decision_tree()
+driver.random_forest()
     

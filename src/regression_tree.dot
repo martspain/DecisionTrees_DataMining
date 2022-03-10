@@ -1,0 +1,32 @@
+digraph Tree {
+node [shape=box] ;
+0 [label="OverallQual <= 7.5\nmse = 6058021712.378\nsamples = 1021\nvalue = 179285.065"] ;
+1 [label="OverallQual <= 6.5\nmse = 2343816106.725\nsamples = 872\nvalue = 158016.144"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="GarageCars <= 1.5\nmse = 1267006278.958\nsamples = 640\nvalue = 140220.989"] ;
+1 -> 2 ;
+3 [label="(...)"] ;
+2 -> 3 ;
+4 [label="(...)"] ;
+2 -> 4 ;
+5 [label="LotArea <= 9637.5\nmse = 2030923959.771\nsamples = 232\nvalue = 207106.228"] ;
+1 -> 5 ;
+6 [label="(...)"] ;
+5 -> 6 ;
+7 [label="(...)"] ;
+5 -> 7 ;
+8 [label="OverallQual <= 8.5\nmse = 9653876371.158\nsamples = 149\nvalue = 303758.208"] ;
+0 -> 8 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+9 [label="LotArea <= 11259.0\nmse = 4287185037.265\nsamples = 108\nvalue = 269933.778"] ;
+8 -> 9 ;
+10 [label="(...)"] ;
+9 -> 10 ;
+11 [label="(...)"] ;
+9 -> 11 ;
+12 [label="FullBath <= 2.5\nmse = 12838278167.085\nsamples = 41\nvalue = 392856.707"] ;
+8 -> 12 ;
+13 [label="(...)"] ;
+12 -> 13 ;
+14 [label="(...)"] ;
+12 -> 14 ;
+}
